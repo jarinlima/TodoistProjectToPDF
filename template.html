@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>{{ titulo }}</title>
+</head>
+<body>
+    
+    <div class="row">
+        <div class="column">
+            <br>
+            <br>
+            <br>
+            <h1>Reporte de Tareas {{ projectname }} </h1>
+            <p>
+               Desde {{ fromdate }} 
+               <br>
+               Hasta {{ todate }} 
+            </p>
+        </div>
+        <div class="column">
+            <img style="width:100%;" src={{ itemsStatusGeneralChartPie }}>
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="column">
+                <img style="width:100%" src={{ itemsPendientesChartBarh }}>
+        </div>
+    </div>
+    <h2>Tareas Pendientes</h2>
+     {{ itemsPendientes }}
+    <h2>Tareas Completadas en el periodo</h2>
+     {{ itemsCompletados }}
+</body>
+</html>
