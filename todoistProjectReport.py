@@ -173,7 +173,7 @@ def main():
                     "itemsPendientes": df_uncompletedtasks.to_html(classes="pure-table pure-table-bordered",index=False)}
     html_out = template.render(template_vars)
     # Convertimos el html a un pdf y le pasamos la ruta base de los archivos, imagenes y estilos
-    HTML(string=html_out,base_url=baseurl).write_pdf("report.pdf", stylesheets=stylesheets)
+    HTML(string=html_out,base_url=baseurl).write_pdf("report_"+str(idproject)+"_"+datetime.now().strftime('%Y_%m_%d_%H_%M_%S')+".pdf", stylesheets=stylesheets)
 
 if __name__ == "__main__":
     main()
