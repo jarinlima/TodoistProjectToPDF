@@ -1,0 +1,9 @@
+parsedatetime
+argparse
+pandas
+todoist-python
+matplotlib
+pytz
+numpy
+jinja2
+weasyprint
