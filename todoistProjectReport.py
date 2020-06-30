@@ -1,8 +1,7 @@
 import pandas as pd 
-import matplotlib
 import todoist
 import json
-from datetime import tzinfo, timedelta, datetime
+from datetime import datetime
 import pytz
 import numpy as np
 from jinja2 import Environment, FileSystemLoader
@@ -11,26 +10,36 @@ from matplotlib import pyplot as plt
 import parsedatetime
 import argparse
 import sys
+import yaml
 
 def parsecliarguments():
-        # Parseamos los argumentos de la linea de comandos
+    # Parseamos los argumentos de la linea de comandos
     parser = argparse.ArgumentParser()
-    parser.add_argument('--fromdate', help='Fecha desde la cual se generará el reporte. Ex. --fromdate="-7d"', required=True)
-    parser.add_argument('--todate', help='Fecha hasta la cual se generará el reporte. Ex. --todate="now"', required=True)
-    parser.add_argument('--timezone', help='Timezone de tu sistema. Ex. --timezone="America/Guatemala"', required=True)
-    parser.add_argument('--idproject', help='ID del proyecto. Ex. --idproject=2412468454', required=True)
-    parser.add_argument('--apikey', help='Api key de todoist. Ex. --apikey=adfadd0afadaf9aa00bcddf5..', required=True)
+    parser.add_argument('--configfile', help='Ruta hacia el archivo de configuración. Ex. --fromdate="config.yaml"', required=True)
     args = parser.parse_args()
+    
+    # Leo el archivo de configuración y parseamos el .yml hacia un dict
+    f = open(args.configfile)
+    data = yaml.load(f, Loader=yaml.FullLoader)
+
+    fromdate = data["fromdate"]
+    todate = data["todate"]
+    timezone = data["timezone"]
+    idproject = data["idproject"]
+    apikey = data["apikey"]
+    baseurl = data["baseurl"]
+    stylesheets = data["stylesheets"]
+
     # Parseando fromdate y todate
     cal = parsedatetime.Calendar()
-    time_struct, parse_status = cal.parse(args.fromdate)
+    time_struct, parse_status = cal.parse(fromdate)
     if parse_status == 0:
         print("Parámetro 'fromdate' inválido, Ayuda -h")
         sys.exit()
     fromdate = datetime(*time_struct[:6]).strftime('%Y-%m-%dT%H:%M:%SZ')
     fromdatefortemplate = datetime(*time_struct[:6]).strftime('%Y-%m-%d %H:%M:%S')
 
-    time_struct, parse_status = cal.parse(args.todate)
+    time_struct, parse_status = cal.parse(todate)
     if parse_status == 0:
         print("Parámetro 'todate' inválido, Ayuda -h")
         sys.exit()
@@ -38,7 +47,7 @@ def parsecliarguments():
     todatefortemplate = datetime(*time_struct[:6]).strftime('%Y-%m-%d %H:%M:%S')
     ## Convirtiendo hora local, en hora UTC
     ### todate
-    local = pytz.timezone(args.timezone)
+    local = pytz.timezone(timezone)
     naive = datetime.strptime (todate, "%Y-%m-%dT%H:%M:%SZ")
     local_dt = local.localize(naive, is_dst=None)
     utc_dt = local_dt.astimezone(pytz.utc)
@@ -48,7 +57,7 @@ def parsecliarguments():
     local_dt = local.localize(naive, is_dst=None)
     utc_dt = local_dt.astimezone(pytz.utc)
     fromdate = utc_dt.strftime ("%Y-%m-%dT%H:%M:%SZ")
-    return fromdate, todate, fromdatefortemplate, todatefortemplate, args.timezone, args.idproject, args.apikey
+    return fromdate, todate, fromdatefortemplate, todatefortemplate, timezone, idproject, apikey, baseurl, stylesheets
 
 # Extraemos las tareas completadas
 def getCompletedTasks(fromdate,todate,idproject,api):
@@ -124,10 +133,9 @@ def generatePNGBarhChart(filename,df_completedtasks):
     ### Guardo el archivo con la grafica sin bordes
     plt.savefig(filename,bbox_inches='tight')
 
-
 def main():
     # Parseamos los argumentos
-    fromdate, todate, fromdatefortemplate, todatefortemplate, timezone, idproject, apikey = parsecliarguments()
+    fromdate, todate, fromdatefortemplate, todatefortemplate, timezone, idproject, apikey, baseurl, stylesheets = parsecliarguments()
     # Sincronizamos con el API de TODOIST
     api = todoist.TodoistAPI(apikey)
     api.sync()
@@ -165,7 +173,7 @@ def main():
                     "itemsPendientes": df_uncompletedtasks.to_html(classes="pure-table pure-table-bordered",index=False)}
     html_out = template.render(template_vars)
     # Convertimos el html a un pdf y le pasamos la ruta base de los archivos, imagenes y estilos
-    HTML(string=html_out,base_url="C:\\Users\\jlima\\Desktop\\Pros\\Python to PDF\\").write_pdf("report.pdf", stylesheets=["css\\base.css","css\\tables.css","css\\simplegrid.css"])
+    HTML(string=html_out,base_url=baseurl).write_pdf("report.pdf", stylesheets=stylesheets)
 
 if __name__ == "__main__":
     main()
