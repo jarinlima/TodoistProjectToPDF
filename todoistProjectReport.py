@@ -15,7 +15,7 @@ import yaml
 def parsecliarguments():
     # Parseamos los argumentos de la linea de comandos
     parser = argparse.ArgumentParser()
-    parser.add_argument('--configfile', help='Ruta hacia el archivo de configuración. Ex. --fromdate="config.yaml"', required=True)
+    parser.add_argument('--configfile', help='Ruta hacia el archivo de configuración. Ex. --configfile="config.yaml"', required=True)
     args = parser.parse_args()
     
     # Leo el archivo de configuración y parseamos el .yml hacia un dict
